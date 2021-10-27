@@ -1,4 +1,4 @@
-# Alternative raw processing by MRR-Pro - RaProM-Pro.py
+# Alternative raw processing for MRR-Pro - RaProM-Pro.py
 
 RaProM-Pro is a novel MRR processing methodology eveloped for MRR-Pro (Micro Rain Radar Doppler profiler manufactured by Metek GmbH) with enhanced spectra processing and Doppler dealiasing. RaProM-Pro produces a number of output fields which include equivalent reflectivity (Ze), Doppler fall speed and derived parameters such as spectral width, skewness, kurtosis, a simplified precipitation type classification (drizzle, rain, mixed, snow, graupel and hail) and additional variables depending on the precipitation type.<br/><br/>
 **Note1:  More information about the processing of RaProM-Pro, with several examples and results of the bright band features can be found on the article:  Garcia-Benadí A, Bech J, Gonzalez S, Udina M, Codina B. A New Methodology to Characterise the Radar Bright Band Using Doppler Spectral Moments from Vertically Pointing Radar Observations. Remote Sens. 2021, 13, 4323. https://doi.org/10.3390/rs13214323**<br/><br/>
