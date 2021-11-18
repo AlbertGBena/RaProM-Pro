@@ -49,7 +49,7 @@ The script produces the following outputs from MRR-Pro netcdf data:<br />
 **Ze:** Equivalent Reflectivity (dBZ)<br />
 **Zea:** Attenuated Equivalent Reflectivity (dBZ)<br />
 **N(D):** Drop Size Distribution (log10(m<sup>-3</sup> mm<sup>-1</sup>)) only for liquid type<br />
-**N(D)_all:** Drop Size Distribution (log10(m<sup>-3</sup> mm<sup>-1</sup>)) suposing that all hydrometeor are in liquid phase<br />
+**N(D)_all:** Drop Size Distribution (log10(m<sup>-3</sup> mm<sup>-1</sup>)) supposing that all hydrometeors are in liquid phase<br />
 **SNR:** Signal noise relation from signal without dealiasing (dB)<br />
 **Noise:** Noise from spectra reflectivity (m<sup>-1</sup>)<br />
 **N<sub>w</sub>:** Intercept of the gamma distribution normalized to the liquid water content (log10(m<sup>-3</sup> mm<sup>-1</sup>))<br />
@@ -74,6 +74,25 @@ at the directory where RaProM-Pro.py has been copied:
 python RaProM-Pro.py
 
 ```
+The script has some additional command line execution options. Please note that their use implies a substantial increase of the netcdf output file (see below). <br />The special options are: <i>-spe3D</i> and <i>-dsd3D</i>.<br /> 
+<i>-spe3D</i>: the script saves the values of the spectral reflectivity after noise and dealiasing process in a spe3D parameter. This parameter is the spectral reflectivity in function of time, height and speed dealiased. The netcdf size increases about 8 times.<br />
+<i>-dsd3D</i>: the script saves the values of Drop Size Distribution in a dsd3D parameter. This parameter is the Drop Size Distribution in function of time, height and the drop diameters. The netcdf size increases  about 4 times.<br />
+With the two options activated the netcdf file increases about 11 times.<br />
+The syntax of this option is:
+
+```
+python RaProM-Pro.py -spe3D
+
+```
+```
+python RaProM-Pro.py -dsd3D
+
+```
+```
+python RaProM-Pro.py -spe3D -dsd3D
+
+```
+
 
 The script asks the directory where the netcdf files to be processed are located (it will process all the MRR-Pro netcdf files of the selected folder), for example:
 ```

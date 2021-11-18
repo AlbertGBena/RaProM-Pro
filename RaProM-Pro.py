@@ -1455,6 +1455,38 @@ def unix2date(unix):
 
 np.warnings.filterwarnings('ignore')#to avoid the error messages
 
+########INCLUDE THE OPTIONS IN EXECUTATION
+if len(sys.argv)==1:
+    option=0
+
+if len(sys.argv)==2:
+   
+    if sys.argv[1]=='-spe3D':
+        print('You chosen option is to save the corrected spectral reflectivity values\n')
+        option=1
+    else:
+        if sys.argv[1]=='-dsd3D':
+            print('You chosen option is to save the 3D DSD\n')
+            option=2
+        else:
+            print('Only 2 options are avalaible:\n -spe3D and -dsd3D\n')
+            sys.exit()
+
+if len(sys.argv)==3: 
+    if (sys.argv[1]=='-spe3D' or sys.argv[1]=='-dsd3D') and (sys.argv[2]=='-spe3D' or sys.argv[2]=='-dsd3D'):
+        print('You chosen option is to save the corrected spectral reflectivity values and 3D DSD\n')
+        option=3
+    else:
+        print('Only there are 2 options avalaible:\n -spe3D and -dsd3D\n')
+        sys.exit()
+    
+
+##########option=1 #the spectra afetr noise ande dealiasing is saved
+##########option=2 #the 3D_DSD is saved, but the user should create the matrix of dropsize to each height
+##########option=3 #the two option are applied
+
+
+
 print('Insert the path of the netcdf to be processed. For instance d:\MrrProdata/')
 Root=input()  #input from the user 
 os.chdir(Root)     
@@ -1805,6 +1837,25 @@ for i in dircf:
         ncShape3D = ('time_utc','Height','DropSize',)
         ncShape3D2 = ('time_utc','Height','Speed',)
         if Timecount==0:
+
+            if option==1:
+                nc_etaV=dataset.createVariable('spe_3D','f',ncShape3D2)
+                nc_etaV.description='Spectral reflectivity Distribution in function of time and height after noise and dealisaing'
+                nc_etaV.units=' mm-1'
+            if option==2:
+                nc_3D=dataset.createVariable('dsd_3D','f',ncShape3D)
+                nc_3D.description='Drop Size Distribution in function of time, height and diameter'
+                nc_3D.units='log10(m-3 mm-1)'
+            if option==3:
+                nc_etaV=dataset.createVariable('spe_3D','f',ncShape3D2)
+                nc_etaV.description='Spectral reflectivity Distribution in function of time and heightafter noise and dealisaing'
+                nc_etaV.units=' mm-1'
+
+                nc_3D=dataset.createVariable('dsd_3D','f',ncShape3D)
+                nc_3D.description='Drop Size Distribution in function of time, height and diameter'
+                nc_3D.units='log10(m-3 mm-1)'
+                
+                
             
                     ##################create the netcdf############
 
@@ -1967,6 +2018,17 @@ for i in dircf:
                 ZeCorrec.append(Ze[j])
                 ZaCorrec.append(np.nan)
         
+        if option==1:
+            nc_etaV[Timecount,:,:]=np.array(np.ma.masked_invalid(NewMatrix),dtype='f')
+            
+                
+        if option==2:
+            nc_3D[Timecount,:,:]=np.array(np.ma.masked_invalid(np.log10(NdE)),dtype='f')
+            
+                
+        if option==3:
+            nc_etaV[Timecount,:,:]=np.array(np.ma.masked_invalid(NewMatrix),dtype='f')
+            nc_3D[Timecount,:,:]=np.array(np.ma.masked_invalid(np.log10(NdE)),dtype='f')
             
         if Timecount==0:
             estat_full=estat;sk_full=sk;kur_full=kur;PIA_full=pIA;
@@ -1975,6 +2037,8 @@ for i in dircf:
             SNR_full=snr;N_da_full=DSD;VelTur_full=velTur;nw_full=NW;dm_full=DM
 
             z_all_full=ZaCorrec_all;lwc_all=LWC_all;rr_all=RR_all;DM_all=dm_all;NW_all=nw_all;n_all=N_all
+
+            
 
                 
             Z_P=z_P;LWC_P=lwc_P;RR_P=rr_P
@@ -1990,6 +2054,10 @@ for i in dircf:
             NW_all=np.vstack((NW_all,nw_all));DM_all=np.vstack((DM_all,dm_all));n_all=np.vstack((n_all,N_all))
                 
             Z_P=np.vstack((Z_P,z_P));LWC_P=np.vstack((LWC_P,lwc_P));RR_P=np.vstack((RR_P,rr_P))
+
+            
+
+            
 
         
 
@@ -2060,7 +2128,14 @@ for i in dircf:
     estat_full,Z_da_full,LWC_full,RR_full,SnowR_full=CorrectWithBBMatrix(estat_full,Z_da_full,LWC_full,RR_full,SnowR_full,Hcolum,bb_bot_full2,bb_top_full2,Z_ea_full,Z_P,LWC_P,RR_P,sk_full)
     
 
-    
+##    if option==1:
+##        nc_etaV[:,:,:]=np.array(np.ma.masked_invalid(NewMatrix_full),dtype='f')
+##    if option==2:
+##        nc_3D[:,:,:]=np.array(np.ma.masked_invalid(np.log10(NdE_full)),dtype='f')
+##    if option==3:
+##        nc_etaV[:,:,:]=np.array(np.ma.masked_invalid(NewMatrix_full),dtype='f')
+##        nc_3D[:,:,:]=np.array(np.ma.masked_invalid(np.log10(NdE_full)),dtype='f')
+        
     nc_state[:,:]=np.array(np.ma.masked_invalid(estat_full),dtype='f')
     nc_w[:,:]=np.array(np.ma.masked_invalid(w_full),dtype='f')
     nc_sig[:,:]=np.array(np.ma.masked_invalid(sig_full),dtype='f')
