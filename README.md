@@ -1,6 +1,6 @@
 # Alternative raw processing for MRR-Pro - RaProM-Pro.py
 
-RaProM-Pro is a novel MRR processing methodology developed for MRR-Pro (Micro Rain Radar Doppler profiler manufactured by Metek GmbH) with enhanced spectra processing and Doppler dealiasing. RaProM-Pro produces a number of output fields which include equivalent reflectivity (Ze), Doppler fall speed and derived parameters such as spectral width, skewness, kurtosis, a simplified precipitation type classification (drizzle, rain, mixed, snow, graupel and hail) and additional variables depending on the precipitation type.<br/><br/>
+RaProM-Pro is a novel MRR processing methodology developed for MRR-Pro (Micro Rain Radar Doppler profiler manufactured by Metek GmbH) with enhanced spectra processing and Doppler dealiasing. RaProM-Pro can work with the <i>spectrum_raw</i> or with <i>spectrum_reflectivity</i> from the Manufacturer's netcdf. RaProM-Pro produces a number of output fields which include equivalent reflectivity (Ze), Doppler fall speed and derived parameters such as spectral width, skewness, kurtosis, a simplified precipitation type classification (drizzle, rain, mixed, snow, graupel and hail) and additional variables depending on the precipitation type.<br/><br/>
 **Note1:  More information about the processing of RaProM-Pro, with several examples and results of the bright band features can be found on the article:  Garcia-Benadí A, Bech J, Gonzalez S, Udina M, Codina B. A New Methodology to Characterise the Radar Bright Band Using Doppler Spectral Moments from Vertically Pointing Radar Observations. Remote Sens. 2021, 13, 4323. https://doi.org/10.3390/rs13214323**<br/><br/>
 **Note2: The scripts works for MRR-Pro data. There is another version of this program for MRR-2 data called RaProM.py (https://github.com/AlbertGBena/RaProM). More information available at: Garcia-Benadi A, Bech J, Gonzalez S, Udina M, Codina B, Georgis JF (2020). Precipitation Type Classification of Micro Rain Radar Data Using an Improved Doppler Spectral Processing Methodology. Remote Sensing, 12(24), 4113 https://doi.org/10.3390/rs12244113** <br />
 
@@ -11,16 +11,19 @@ More information at: Garcia-Benadí A, Bech J, Gonzalez S, Udina M, Codina B. A 
 The main script is called RaProM-Pro.py and it is available in Python 3.8. The following libraries are necessary::
 
 	numpy , version 1.14.5 or later
+	miepython, version 1.3.0 or later (matplotlib is necessary for this library works)
+	netCDF4, version 1.2.7 or later (cftime is necessary for this library works)
 
-	miepython, version 1.3.0 or later
-
-	netCDF4, version 1.2.7 or later
-
+	Other necessary libaries are datetime, math, os, glob and sys
+	
 The libraries can be installed with pip, using these sentences:
 
 	pip install numpy
 	pip install miepython
 	pip install netCDF4
+	pip install matplotlib
+	pip install cftime
+	
 
 **The script works with the MRR-Pro files.**
 
@@ -76,8 +79,11 @@ python RaProM-Pro.py
 ```
 The script has some additional command line execution options. Please note that their use implies a substantial increase of the netcdf output file (see below). <br />The special options are: <i>-spe3D</i> and <i>-dsd3D</i>.<br /> 
 <i>-spe3D</i>: the script saves the values of the spectral reflectivity after noise and dealiasing process in a spe3D parameter. This parameter is the spectral reflectivity in function of time, height and speed dealiased. The netcdf size increases about 8 times.<br />
-<i>-dsd3D</i>: the script saves the values of Drop Size Distribution in a dsd3D parameter. This parameter is the Drop Size Distribution in function of time, height and the drop diameters. The netcdf size increases  about 4 times.<br />
+<i>-dsd3D</i>: the script saves the values of Drop Size Distribution in a dsd3D parameter. This parameter is the Drop Size Distribution in function of time, height and the drop diameters. The netcdf size increases about 4 times.<br />
 With the two options activated the netcdf file increases about 11 times.<br />
+<i>-hxxxx</i>: forces the antenna height is at xxx meters above sea level.<br />
+
+With the <i>-spe3D</i> and <i>-dsd3D</i> options activated the netcdf file increases about 11 times.<br />
 The syntax of this option is:
 
 ```
@@ -92,7 +98,10 @@ python RaProM-Pro.py -dsd3D
 python RaProM-Pro.py -spe3D -dsd3D
 
 ```
+```
+python RaProM-Pro.py -spe3D -dsd3D -h100.3
 
+```
 
 The script asks the directory where the netcdf files to be processed are located (it will process all the MRR-Pro netcdf files of the selected folder), for example:
 ```

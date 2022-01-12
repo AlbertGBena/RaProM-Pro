@@ -1,23 +1,17 @@
 ##SCRIPT FOR READING AND PROCESSING DATA FROM MRR PRO IN A FOLDER
-
+##The script is compatible with spectrum_raw and spectrum_reflectivity
 
 import numpy as np
-
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 import calendar
 import datetime
-import time
-import copy
 import miepython as mp
 from math import e
 from netCDF4 import Dataset,num2date,date2num
 import netCDF4 as nc4
-import matplotlib.cm as cm
 import glob
 import os
 import sys
-import shutil
+
 
 def Aliasing(matriu,fNy,he,temps):#analyse to correct the aliasing
     numberDoppler=len(matriu[0])
@@ -547,7 +541,7 @@ def group(a,indexcentral,Nnan,d):
             if cont>=Nnan or index-incr2<=0:
                 cond=0
             
-##            if index<=96:
+
             if np.isnan(a[index-incr2]):
                 cont+=1
             
@@ -590,7 +584,7 @@ def group(a,indexcentral,Nnan,d):
             incr1+=1
 
         cont=0;
-        incr2=1#starta at 1
+        incr2=1#starts at 1
         
         cond=1
         while cond:
@@ -625,8 +619,8 @@ def group(a,indexcentral,Nnan,d):
 
 
 
-def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of the signal processing
-    etan=np.copy(matrix)
+def Process(matrix,he,temps,D,cte,neta,deltavel,code,Noi_spe_ref):#This function is the core of the signal processing
+    matrix=np.asarray(matrix)
     lenHei=len(he)
     Doppler_bins=len(matrix[0])
     roW=10**6 #water density g/m3
@@ -636,21 +630,28 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
     for i in range(len(he)):
 
         dv.append(1+3.68*10**-5*he[i]+1.71*10**-9*he[i]**2)
-
-    
-    etaN=np.multiply(etan,cte)
-    etaV=etaN/deltavel#convert eta(n) in eta(v)
-    state=[]#get the values 10 to water,-10 to snow and 0 if it is impossible to
-    
+    if code==0:#from spectrum_raw
+        etan=np.copy(matrix)
+        etaN=np.multiply(etan,cte)
+        etaV=etaN/deltavel#convert eta(n) in eta(v)
+        
+        
+        
+        Noise=np.multiply(neta,cte)#noise from eta (n) units m-1
+        
+        Snr=[]
+        for j in range(len(Noise)):
+            if np.isnan(Noise[j]):
+                Snr.append(np.nan)
+            else:
+                Snr.append(10.*np.log10(np.nansum(etan[j])/neta[j]))
+    if code==1:#from spectrum_reflectivity
+        etaV=np.copy(matrix)
+        Snr=np.copy(Noi_spe_ref)
+        Noise=np.copy(Snr)*np.nan
+    state=[]
     zewater=[];Ni=[];VT=[];Z=[];Z_da=[];Vhail=[]
-    Noise=np.multiply(neta,cte)#noise from eta (n) units m-1
     Vec_Deal=Aliasing(etaV,deltavel,he,temps)#function to avoid the aliasing#################
-    Snr=[]
-    for j in range(len(Noise)):
-        if np.isnan(Noise[j]):
-            Snr.append(np.nan)
-        else:
-            Snr.append(10.*np.log10(np.nansum(etan[j])/neta[j]))
 
     PIAind=[]
     Z_pol_h=[];Z_all=[];RR_all=[];LWC_all=[];N_all=[];dm_all=[];nw_all=[]
@@ -797,10 +798,10 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
     W=[];Sig=[];Sk=[];lwc=[];rr=[];Z_da=[];SnowRate=[];N_da=[];Kurt=[];dm=[];nw=[];N_D_T=[]
     if np.sum(np.nanmean([vwaterR,vsnowR],axis=0))!=0:
         
-##########        limitValueDeal=4#Limit value to activate the dealiasing
+
         DealMatrix=[]
         
-        for o in range(len(etan)):
+        for o in range(len(matrix)):
             ReVect=Vec_Deal[o]
             if np.isnan(ReVect).all():
                 S=np.nan
@@ -923,6 +924,7 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
                       
 
         for m in range(len(NewM)):
+
             vector=NewM[m]
             NullVector=NewM[m]*np.nan
             
@@ -931,8 +933,8 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
             PT=np.nansum(vector)
             w=np.nansum(np.prod([vector,vel],axis=0))/PT#estimated velocity
             sigma=np.sqrt(np.nansum(np.prod([vector,np.power(vel-w,2)],axis=0))/PT)# spectral witdh
-            sk=np.nansum(np.prod([vector,np.power(vel-w,3)],axis=0))/(PT*pow(sigma,3))# spectral witdh
-            Kur=np.nansum(np.prod([vector,np.power(vel-w,4)],axis=0))/(PT*pow(sigma,4))# Kurtossis
+            sk=np.nansum(np.prod([vector,np.power(vel-w,3)],axis=0))/(PT*pow(sigma,3))# skewnes
+            Kur=np.nansum(np.prod([vector,np.power(vel-w,4)],axis=0))/(PT*pow(sigma,4))# Kurtosis
             ValueZe=(10**18*lamb**4*deltavel*np.nansum(NewM[m]))/(np.pi**5*K2w)
 
             
@@ -1021,7 +1023,7 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
                     
 
                     if m<len(Zediff):
-                        if sk<=-0.5 and Zediff[m]>=1.:#New criteria from empric values. MOre information in--> https://doi.org/10.1175/JTECH-D-18-0158.1
+                        if sk<=-0.5 and Zediff[m]>=1.:#New criteria from empric values. More information in--> https://doi.org/10.1175/JTECH-D-18-0158.1 (It's necessary to check again)
 
                             
                             MDriz.append(NewM[m])
@@ -1102,19 +1104,23 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
 
 
             if state[m]==0:#Mixed case
+                
+                
+                
                 if Snr[m]<=15.:
                     state[m]=-10.#snow
                     SnowRate.append(np.power(ValueZe/56.,1/1.2))
-                                    
+                                        
                 else:
                     if m<len(Zediff):
                         if ~np.isnan(sk):
                             if sk<=-0.5 and Zediff[m]>1.0:
                                 state[m]=5.#drizzle
-        ####################criteria from doi:10.5194/acp-16-2997-2016
+            ####################criteria from doi:10.5194/acp-16-2997-2016
                             if sk>=0. and w>2.:
                                 state[m]=-15.#graupel
                     SnowRate.append(np.nan)
+                
                         
                     
                 Mmixed.append(NewM[m])
@@ -1176,7 +1182,7 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
 
 
                 SnowRate.append(np.nan)
-                Nde.append(np.ones(shape=(len(etaN[1])))*np.nan)
+                Nde.append(np.ones(shape=(len(matrix[1])))*np.nan)
                 if mov[m]==-1:#case hail and upward, using the same for snow
                       VerTur.append((.817*np.power(ValueZe,.063))-w)
                 if mov[m]==1:#case hail and downward, using the same for snow
@@ -1201,7 +1207,7 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
 
     else:#There is not Signal
         
-        blanck=np.nan*np.ones(shape=(len(etaN)))
+        blanck=np.nan*np.ones(shape=(len(matrix)))
         state=blanck
         NewM=(np.ones(shape=(len(he),len(speeddeal)))*np.nan)
         Z_da=blanck
@@ -1216,7 +1222,7 @@ def Process(matrix,he,temps,D,cte,neta,deltavel):#This function is the core of t
         Kurt=blanck
         SnowRate=blanck
 
-        N_D_T=(etaN*np.nan)
+        N_D_T=(matrix*np.nan)
         ZE=blanck
         mov=blanck
         VerTur=blanck
@@ -1458,27 +1464,50 @@ np.warnings.filterwarnings('ignore')#to avoid the error messages
 ########INCLUDE THE OPTIONS IN EXECUTATION
 if len(sys.argv)==1:
     option=0
-
-if len(sys.argv)==2:
+c_opt=0;c1=0;c2=0;c3=0;h0_opt=np.nan
+if len(sys.argv)>1:
+    for i in sys.argv:
    
-    if sys.argv[1]=='-spe3D':
-        print('You chosen option is to save the corrected spectral reflectivity values\n')
-        option=1
-    else:
-        if sys.argv[1]=='-dsd3D':
-            print('You chosen option is to save the 3D DSD\n')
+        if i=='-spe3D':
+            #print('Your chosen option is to save the corrected spectral reflectivity values\n')
+            option=1
+            c_opt+=1
+            c1=1
+        
+        if i=='-dsd3D':
+            #print('Your chosen option is to save the 3D DSD\n')
             option=2
-        else:
-            print('Only 2 options are avalaible:\n -spe3D and -dsd3D\n')
-            sys.exit()
+            c_opt+=1
+            c2=1
+        if i[0:2]=='-h':
+            #print('The first height has been changed\n')
+            h0_opt=float(i[2:])
+            option=0
+            c_opt+=1
+            c3=1
+    if c_opt!=len(sys.argv)-1:
 
-if len(sys.argv)==3: 
-    if (sys.argv[1]=='-spe3D' or sys.argv[1]=='-dsd3D') and (sys.argv[2]=='-spe3D' or sys.argv[2]=='-dsd3D'):
-        print('You chosen option is to save the corrected spectral reflectivity values and 3D DSD\n')
-        option=3
-    else:
-        print('Only there are 2 options avalaible:\n -spe3D and -dsd3D\n')
+        print('Please check the syntaxis, possible command line arguments available are (more than one is possible, in any order):\n -spe3D -dsd3D -hxxx \nwhere\n-spe3D : saves corrected spectral reflectivity values\n-dsd3D : saves 3D DSD\n -hxxx : forces the antenna height is at xxx meters above sea level.\n')
         sys.exit()
+    if c1==1 and c2==1:
+        option=3
+    if c1==1 and c2==0 and c3==0:
+        print('\nYour chosen option is to save the corrected spectral reflectivity values\n')
+    if c1==0 and c2==1 and c3==0:
+        print('\nYour chosen option is to save the 3D DSD\n')
+    if c1==0 and c2==0 and c3==1:
+        print('\nThe antenna height has been changed\n')
+    if c1==0 and c2==1 and c3==1:
+        print('\nThe first height has been changed and the 3D DSD is saved\n')
+    if c1==1 and c2==0 and c3==1:
+        print('\nThe antenna height has been changed and the corrected spectral reflectivity is saved\n')
+    if c1==1 and c2==1 and c3==1:
+        print('\nThe antenna height has been changed and the corrected spectral reflectivity and 3D DSD are saved\n')
+    if c1==1 and c2==1 and c3==0:
+        print('\nThe corrected spectral reflectivity and 3D DSD are saved\n')
+
+
+
     
 
 ##########option=1 #the spectra afetr noise ande dealiasing is saved
@@ -1487,7 +1516,7 @@ if len(sys.argv)==3:
 
 
 
-print('Insert the path of the netcdf to be processed. For instance d:\MrrProdata/')
+print('Insert the path of directory containing the netcdf file(s) to be processed. For instance d:\MrrProdata/')
 Root=input()  #input from the user 
 os.chdir(Root)     
 
@@ -1506,12 +1535,38 @@ Count_Cons=0;Cons.append(0)
 for i in dircf:
     
     f=nc4.Dataset(i,'r')
-    raw=f.variables['spectrum_raw'][:,:]#log_attenuated_power  in dB
+    for k in f.variables:
+        if k=='spectrum_reflectivity':
+            Code_spectrum=1
+        if k=='spectrum_raw':
+            Code_spectrum=0
+    if Code_spectrum==0:
+        raw=f.variables['spectrum_raw'][:,:]#log_attenuated_power  in dB
+        Ntime,NheiM,NbinsM=np.shape(raw)
+    if Code_spectrum==1:
+        raw2=f.variables['spectrum_reflectivity'][:,:]#log_attenuated_power  in dB in 1m2/m3
+        Ntime,NheiM,NbinsM=np.shape(raw2)
+    
+    Latitude=f.variables['latitude'][:]
+    Longitude=f.variables['longitude'][:]
+    #print(Latitude,Longitude)
+
     TF=f.variables['transfer_function'][:]
     CC=f.variables['calibration_constant'][:]
     Range=f.variables['range'][:]
     TimeVector=f.variables['time'][:]
-    Ntime,NheiM,NbinsM=np.shape(raw)
+    for k in f.ncattrs():
+        
+        if k=='title':
+            new_title='Processed data from '+str(f.getncattr(k))
+        
+        if k=='instrument_name':
+            new_Instr='Processed data from '+str(f.getncattr(k))
+        if k=='site_name':
+            Site=str(f.getncattr(k))
+
+        
+    
     f.close()
     if ~np.isnan(TimeFinal):
         valor=TimeVector[0]-TimeFinal
@@ -1532,14 +1587,18 @@ FullIntervalTime= round(np.min(TimeInteFiles),0)#minimum time resolution of all 
 if FullIntervalTime==1 or FullIntervalTime==5 or FullIntervalTime==10 or FullIntervalTime==60:
     TimeInt=FullIntervalTime
 else:
-    print('The time ressolution found in files is not the usual. Please insert the time ressolution of the files (in seconds), for instance: 10')
+    print('The time resolution found in files is not the usual one. Please insert the time resolution of the files (in seconds), for instance: 10')
     val=input()  #input from the user
     FullIntervalTime=int(val)
     TimeInt=FullIntervalTime
 
 ######################NOTE THAT THE RANGE FROM NETCDF STARTS AT THE FIRST HEIGHT GATE
-Hcolum=Range
 DeltaH=Range[3]-Range[2]
+if np.isnan(h0_opt):
+    Hcolum=Range
+else:
+    Hcolum=np.arange(h0_opt,len(Range)*DeltaH+h0_opt,DeltaH)
+
 FTcolum=np.asarray(TF)
 C=CC
 
@@ -1604,11 +1663,11 @@ BB_last_bot=np.nan;BB_last_peak=np.nan;BB_last_top=np.nan
 for i in dircf:
     condTime=0
     if len(dircf)==0:
-        print('There are not netcdf files in this folder! Please check your folder')
+        print('There are no netcdf files in this folder! Please check your folder')
         break
     else:
         if len(dircf)>=2 and CountNumberofFile==0:
-            print(' There are '+str(len(dircf))+' files in this folder')
+            print(' There are '+str(len(dircf))+' netcdf files in this folder')
             CountNumberofFile+=1
         else:
             if CountNumberofFile==0:
@@ -1624,7 +1683,21 @@ for i in dircf:
     
     
     f=nc4.Dataset(i,'r')
-    raw=f.variables['spectrum_raw'][:,:]
+    for k in f.variables:
+        if k=='spectrum_reflectivity':
+            Code_spectrum=1
+        if k=='spectrum_raw':
+            Code_spectrum=0
+    if Code_spectrum==0:
+        raw=f.variables['spectrum_raw'][:,:]#log_attenuated_power  in dB
+        Ntime,Nhei,Nbins=np.shape(raw)
+        Snr_Refl=[]
+        
+    if Code_spectrum==1:
+        raw2=f.variables['spectrum_reflectivity'][:,:]#log_attenuated_power  in dB in 1m2/m3
+        Ntime,Nhei,Nbins=np.shape(raw2)
+        Snr_Refl=f.variables['SNR'][:,:]
+
     t=f.variables['time'][:]
     Range=f.variables['range'][:]
     TF=f.variables['transfer_function'][:]
@@ -1632,15 +1705,19 @@ for i in dircf:
     
     f.close()
     TimeInt=FullIntervalTime
-    Hcolum=Range
+    
     DeltaH=Range[3]-Range[2]
+    if np.isnan(h0_opt):
+        Hcolum=Range
+    else:
+        Hcolum=np.arange(h0_opt,len(Range)*DeltaH+h0_opt,DeltaH)
     FTcolum=np.asarray(TF)
     C=CC
 
 
 
     #features from radar Mrr Pro
-    Ntime,Nhei,Nbins=np.shape(raw)
+    
 
     velc=299792458.#light speed 
     lamb=velc/(24.23*1e9)  #La frequency of radar is 24.23 GHz
@@ -1698,7 +1775,7 @@ for i in dircf:
     if (3600/TimeInt)-len(t)>=353:
         print('The file has not enought values, less of 1 minute')
         
-    Ntime,Nhei,Nbins=np.shape(raw)
+    #Ntime,Nhei,Nbins=np.shape(raw)
     if NheiM!=Nhei or NbinsM!=Nbins:
         print('Attention, there are netcdf files with different configuration!')
 
@@ -1729,7 +1806,10 @@ for i in dircf:
         if TimeCorr[j]<=t[ind] and ind<len(t)-1:    
             if TimeCorr[j]==t[ind]:
                 Time.append(t[ind])
-                Raw.append(raw[ind])
+                if Code_spectrum==0:
+                    Raw.append(raw[ind])
+                if Code_spectrum==1:
+                    Raw.append(raw2[ind])
                 ind+=1
 
             else:
@@ -1743,9 +1823,23 @@ for i in dircf:
         
         
     dataset=Dataset(i[:-3]+'-processed'+'.nc','w',format='NETCDF4')
-    dataset.description='Data processed by Mrr-Pro radar'
-    dataset.author='Albert Garcia Benadi'
+    dataset.description=new_title
+    dataset.author='Albert Garcia Benad'+u'\xed'
     dataset.orcid='0000-0002-5560-4392 '
+    dataset.instrument_details=new_Instr
+    if not Site:
+        dataset.site='Undefined'
+    else:
+        dataset.site=Site
+    if not Latitude:
+        dataset.latitude='Undefined'
+
+    else:
+        dataset.latitude=Latitude
+    if not Longitude:
+        dataset.longitude='Undefined'
+    else:
+        dataset.longitude=Longitude
 
     dataset.createDimension('DropSize',len(D[0]))
 
@@ -1794,7 +1888,7 @@ for i in dircf:
     nc_ranges_H_BB.description = 'Heights in meters a.s.l.'
                     
       
-    nc_ranges_H[:]=np.array(Range,dtype='f4')
+    nc_ranges_H[:]=np.array(Hcolum,dtype='f4')
     
     nc_ranges_V[:]=np.array(speed3,dtype='f4')
         
@@ -1807,18 +1901,29 @@ for i in dircf:
 
     bb_bot_full=[];bb_top_full=[];bb_peak_full=[]
     for i in range(len(Time)):
-        tst1=time.time()
+        tst1=(datetime.datetime.now()).timestamp()
         
         Pot=[];NewNoise=[]
 
         
-        for k in range(len(Hcolum)):
-            COL=np.asarray(Raw[i][k])#len of 64 doppler bins
-            COL=np.power(10,COL/10.)#convert dB power to units unknow
-            COL2,Noise=MrrProNoise2(COL,k,DeltaH,TimeInt)
-            
-            NewNoise.append(Noise*(k)**2/FTcolum[k])
-            Pot.append((COL2*((k)**2))/FTcolum[k])#col is the value s(n,i) spectrum power in dB so change the dB power to units
+        if Code_spectrum==0:
+            for k in range(len(Hcolum)):
+                COL=np.asarray(Raw[i][k])#len of 64 doppler bins
+                COL=np.power(10,COL/10.)#convert dB power to units unknow
+                COL2,Noise=MrrProNoise2(COL,k,DeltaH,TimeInt)
+                
+                NewNoise.append(Noise*(k)**2/FTcolum[k])
+                Pot.append((COL2*((k)**2))/FTcolum[k])#col is the value s(n,i) spectrum power in dB so change the dB power to units
+            Snr_Refl_2=[]
+        if Code_spectrum==1:
+            for k in range(len(Hcolum)):
+                COL=np.asarray(Raw[i][k])#len of 64 doppler bins
+                Pot.append(np.power(10,COL/10.))#convert dB power to units m2/m3 and the noise has been substracted
+            if i<=len(Snr_Refl)-1:
+                Snr_Refl_2=Snr_Refl[i]
+            else:
+                Snr_Refl_2=Snr_Refl_2*np.nan
+
 
         if len(Pot)==0:
             proeta=np.ones([NheiM,NbinsM])*np.nan
@@ -1984,7 +2089,7 @@ for i in dircf:
             nc_bb_peak.units='m'
 
 
-        estat,NewMatrix,z_da,Lwc,Rr,SnowRate,w,sig,sk,Noi,DSD,NdE,Ze,Mov,velTur,snr,kur,PiA,NW,DM,z_P,lwc_P,rr_P,Z_h,Z_all,RR_all,LWC_all,dm_all,nw_all,N_all=Process(proeta,Hcolum,Time[i],D,Cte,NewNoise,Deltav)
+        estat,NewMatrix,z_da,Lwc,Rr,SnowRate,w,sig,sk,Noi,DSD,NdE,Ze,Mov,velTur,snr,kur,PiA,NW,DM,z_P,lwc_P,rr_P,Z_h,Z_all,RR_all,LWC_all,dm_all,nw_all,N_all=Process(proeta,Hcolum,Time[i],D,Cte,NewNoise,Deltav,Code_spectrum,Snr_Refl_2)
         if Timecount==0 or Timecount==1:
             if Timecount==0:
                 bb_bot,bb_top,bb_peak=BB2(w,Ze,Hcolum,sk,kur,np.ones(2)*np.nan,np.ones(2)*np.nan,np.ones(2)*np.nan)#the bb is necessary calcultae after determinate w
@@ -2068,7 +2173,7 @@ for i in dircf:
 
 
         Timecount+=1
-        tst2=time.time()
+        tst2=(datetime.datetime.now()).timestamp()
         DeltaTimeWork=round((3600./float(TimeInt))*float(tst2-tst1),0)
         
         if condTime==0:
