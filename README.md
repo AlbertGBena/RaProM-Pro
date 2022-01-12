@@ -80,11 +80,10 @@ python RaProM-Pro.py
 The script has some additional command line execution options. Please note that their use implies a substantial increase of the netcdf output file (see below). <br />The possible command line arguments available are (more than one is possible, in any order): <i>-spe3D</i>  <i>-dsd3D</i>  <i>-hxxxx</i>.<br /> 
 <i>-spe3D</i>: the script saves the values of the spectral reflectivity after noise and dealiasing process in a spe3D parameter. This parameter is the spectral reflectivity in function of time, height and speed dealiased. The netcdf size increases about 8 times.<br />
 <i>-dsd3D</i>: the script saves the values of Drop Size Distribution in a dsd3D parameter. This parameter is the Drop Size Distribution in function of time, height and the drop diameters. The netcdf size increases about 4 times.<br />
-With the two options activated the netcdf file increases about 11 times.<br />
 <i>-hxxxx</i>: forces the antenna height is at xxx meters above sea level.<br />
 
 With the <i>-spe3D</i> and <i>-dsd3D</i> options activated the netcdf file increases about 11 times.<br />
-The syntax of this option is:
+The syntax of these options are:
 
 ```
 python RaProM-Pro.py -spe3D
