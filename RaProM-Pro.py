@@ -1802,23 +1802,33 @@ for i in dircf:
 ##    LOOP TO CORRECT THE GAPS EQUIPEMNT
     ind=0#index for temps
     for j in range(len(TimeCorr)):
-        
-        if TimeCorr[j]<=t[ind] and ind<len(t)-1:    
-            if TimeCorr[j]==t[ind]:
-                Time.append(t[ind])
-                if Code_spectrum==0:
-                    Raw.append(raw[ind])
-                if Code_spectrum==1:
-                    Raw.append(raw2[ind])
-                ind+=1
+##        print('temps corregit',TimeCorr[j],'temps orig',t[ind])
+        if len(TimeCorr)==len(t):#there aren't gaps
+            Time.append(t[ind])
+            if Code_spectrum==0:
+                Raw.append(raw[ind])
+            if Code_spectrum==1:
+                Raw.append(raw2[ind])
+            ind+=1
+        else:
+            if TimeCorr[j]<=t[ind]:
+                if TimeCorr[j]==t[ind]:
+                    Time.append(t[ind])
+                    if Code_spectrum==0:
+                        Raw.append(raw[ind])
+                    if Code_spectrum==1:
+                        Raw.append(raw2[ind])
+                    if ind<len(t)-1:
+                        ind+=1
 
+                else:
+                    
+                    Time.append(TimeCorr[j])
+                    Raw.append(EmptyRaw)
             else:
                 
                 Time.append(TimeCorr[j])
                 Raw.append(EmptyRaw)
-        else:
-            Time.append(TimeCorr[j])
-            Raw.append(EmptyRaw)
         
         
         
