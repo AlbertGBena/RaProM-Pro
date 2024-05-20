@@ -35,35 +35,35 @@ Garcia-Benadí A, Bech J, Gonzalez S, Udina M, Codina B. A New Methodology to Ch
 
 ## Outputs
 The script produces the following outputs from MRR-Pro netcdf data:<br />
-**W:** fall speed with aliasing correction (m s<sup>-1</sup>)<br />
-**spectral width:** spectral width of the dealiased velocity distribution (m s<sup>-1</sup>)<br />
-**skewness:** skewness of the dealiased velocity distribution<br />
-**kurtosis:** kurtosis of the dealiased velocity distribution<br />
-**DBPIA:** Path Integrated Attenuation without the hydrometeor type consideration<br />
-**Type:** Hydrometeor type (unknown[20], rain [10], drizzle [5], mixed [0], snow [-10], graupel [-15] and hail [-20])<br />
-**LWC:** Liquid water content (g m<sup>-3</sup>)<br />
-**RR:** Rain rate (mm h<sup>-1</sup>)<br />
-**LWC_all:** Liquid water content (g m<sup>-3</sup>) supposing that all hydrometeors are in liquid phase<br />
-**RR_all:** Rain rate (mm h<sup>-1</sup>) supposing that all hydrometeors are in liquid phase<br />
-**SR:** Snow rate (mm h<sup>-1</sup>)<br />
-**Z:** Reflectivity considering only liquid drops (dBZ)<br />
-**Z_all:** Reflectivity (dBZ) supposing that all hydrometeors are in liquid phase <br />
-**Za:** Attenuated Reflectivity considering only liquid drops (dBZ)<br />
-**Ze:** Equivalent Reflectivity (dBZ)<br />
-**Zea:** Attenuated Equivalent Reflectivity (dBZ)<br />
-**N(D):** Drop Size Distribution (log10(m<sup>-3</sup> mm<sup>-1</sup>)) only for liquid type<br />
-**N(D)_all:** Drop Size Distribution (log10(m<sup>-3</sup> mm<sup>-1</sup>)) supposing that all hydrometeors are in liquid phase<br />
-**SNR:** Signal noise relation from signal without dealiasing (dB)<br />
+**W:** Fall speed with aliasing correction (m s<sup>-1</sup>)<br />
+**spectral width:** Spectral width of the dealiased velocity distribution (m s<sup>-1</sup>)<br />
+**skewness:** Skewness of the dealiased velocity distribution<br />
+**kurtosis:** Kurtosis of the dealiased velocity distribution<br />
+**DBPIA:** Path Integrated Attenuation (dB) calculated assuming all hydrometeors are in liquid phase regardless of hydrometeor type classification<br />
+**Type:** Predominant hydrometeor type numerical value where possible values are: -20 (hail), -15 (graupel), -10 (snow), 0 (mixed), 5 (drizzle), 10 (rain) and 20 (unknown precipitation)<br />
+**LWC:** Liquid Water Content (g m<sup>-3</sup>) calculated using only liquid hydrometeors according to hydrometeor type classification<br />
+**RR:** Rain Rate (mm h<sup>-1</sup>) calculated using only liquid hydrometeors according to hydrometeor type classification<br />
+**LWC_all:** Liquid Water Content (g m<sup>-3</sup>) calculated assuming all hydrometeors are in liquid phase regardless of hydrometeor type classification<br />
+**RR_all:** Rain Rate (mm h<sup>-1</sup>) calculated assuming all hydrometeors are in liquid phase regardless of hydrometeor type classification<br />
+**SR:** Snow Rate (mm h<sup>-1</sup>)<br />
+**Z:** Radar reflectivity (dBZ) calculated using only liquid hydrometeors according to hydrometeor type classification<br />
+**Z_all:** Radar reflectivity (dBZ) calculated assuming all hydrometeors are in liquid phase regardless of hydrometeor type classification <br />
+**Za:** Attenuated radar reflectivity (dBZ) calculated using only liquid hydrometeors according to hydrometeor type classification<br />
+**Ze:** Equivalent radar reflectivity (dBZ)<br />
+**Zea:** Attenuated equivalent radar reflectivity (dBZ)<br />
+**N(D):** Drop Size Distribution (log10(m<sup>-3</sup> mm<sup>-1</sup>)) calculated using only liquid hydrometeors according to hydrometeor type classification<br />
+**N(D)_all:** Drop Size Distribution (log10(m<sup>-3</sup> mm<sup>-1</sup>)) calculated assuming all hydrometeors are in liquid phase regardless of hydrometeor type classification<br />
+**SNR:** Signal to noise ratio from signal without dealiasing (dB)<br />
 **Noise:** Noise from spectra reflectivity (m<sup>-1</sup>)<br />
-**N<sub>w</sub>:** Intercept of the gamma distribution normalized to the liquid water content (log10(m<sup>-3</sup> mm<sup>-1</sup>))<br />
-**D<sub>m</sub>:** Mean mass-weighted raindrop diameter (mm)<br />
-**N<sub>w</sub>_all:** Intercept of the gamma distribution normalized (log10(m<sup>-3</sup> mm<sup>-1</sup>)) supposing that all hydrometeors are in liquid phase<br />
-**D<sub>m</sub>_all:** Mean mass-weighted raindrop diameter (mm) supposing that all hydrometeors are in liquid phase <br />
+**N<sub>w</sub>:** Intercept of the gamma distribution normalized to the Liquid Water Content (log10(m<sup>-3</sup> mm<sup>-1</sup>)) calculated using only liquid hydrometeors according to hydrometeor type classification<br />
+**D<sub>m</sub>:** Mean mass-weighted raindrop diameter (mm) calculated using only liquid hydrometeors according to hydrometeor type classification<br />
+**N<sub>w</sub>_all:** Intercept of the gamma distribution normalized (log10(m<sup>-3</sup> mm<sup>-1</sup>)) calculated assuming all hydrometeors are in liquid phase regardless of  hydrometeor type classification<br />
+**D<sub>m</sub>_all:** Mean mass-weighted raindrop diameter (mm) calculated assuming all hydrometeors are in liquid phase regardless of hydrometeor type classification <br />
 **BB<sub>bottom</sub>:** Bright Band bottom height  (m) (above sea level)<br />
 **BB<sub>top</sub>:** Bright Band top height (m) (above sea level)<br />
 **BB<sub>peak</sub>:** Bright Band peak height (m) (above sea level)<br />
-**TyPrecipi:** Rainfall type where the value 5 is convective, 0 is transition and -5 is stratiform<br />
-**TyPrecipi_all:** Rainfall type supposing that all hydrometeors are in liquid phase where the value 5 is convective, 0 is transition and -5 is stratiform<br />
+**TyPrecipi:** Precipitation regime numerical value where possible values are: 5 (convective), 0 (transition) and -5 (stratiform) calculated using only liquid hydrometeors according to hydrometeor type classification<br />
+**TyPrecipi_all:** Precipitation regime numerical value where possible values are: 5 (convective), 0 (transition) and -5 (stratiform) calculated assuming all hydrometeors are in liquid phase regardless of hydrometeor type classification<br />
 <br />
 
 
@@ -77,12 +77,18 @@ at the directory where RaProM-Pro.py has been copied:
 python RaProM-Pro.py
 
 ```
-The script has some additional command line execution options. Please note that their use implies a substantial increase of the netcdf output file (see below). <br />The possible command line arguments available are (more than one is possible, in any order): <i>-spe3D</i>  <i>-dsd3D</i>  <i>-hxxxx</i>.<br /> 
-<i>-spe3D</i>: the script saves the values of the spectral reflectivity after noise and dealiasing process in a spe3D parameter. This parameter is the spectral reflectivity in function of time, height and speed dealiased. The netcdf size increases about 8 times.<br />
-<i>-dsd3D</i>: the script saves the values of Drop Size Distribution in a dsd3D parameter. This parameter is the Drop Size Distribution in function of time, height and the drop diameters. The netcdf size increases about 4 times.<br />
-<i>-hxxxx</i>: forces the antenna height is at xxx meters above sea level.<br />
+The script has some additional command line execution options. Please note that their use may imply a substantial increase of the netcdf output file (see below). Command line options are (more than one is possible, in any order):<br /> 
+<br /> 
+**<i>-spe3D</i>**: this option saves spectral reflectivity raw values after noise and dealising in the spe3D variable. Which contains the spectral reflectivity in function of time, height and speed dealiased. Output file size increases about a factor of 8.<br />
+<br /> 
+**<i>-dsd3D</i>**: this option saves the Drop Size Distribution vales in the dsd3D variable which contains the Drop Size Distribution in function of time, height and drop diameters.  Output file size increases about a factor of 4.<br />
+<br /> 
+**<i>-hxxx</i>**: this option forces the MRR antenna height to be at xxx meters above sea level which is important if the height was not correctly configured in the original raw data file. xxx can be a float or an integer value.<br />
+<br /> 
+**<i>-Myyy</i>**: this option modifies the MRR radar constant so it will affect Z, RR and other variables. M is the multiplicative bias calculated by comparing the MRR rainfall (R_MRR) with a reference rainfall value such as a rain gauge (R_REF), M=R_MRR/R_REF. M can be a float or an integer, typically close to 1.<br />
+<br /> 
 
-With the <i>-spe3D</i> and <i>-dsd3D</i> options activated the netcdf file increases about 11 times.<br />
+
 The syntax of these options are:
 
 ```
@@ -94,13 +100,16 @@ python RaProM-Pro.py -dsd3D
 
 ```
 ```
-python RaProM-Pro.py -spe3D -dsd3D
+python RaProM-Pro.py -h100.3
 
 ```
+This example forces the antenna height to be at 100.3 m above sea level.<br />
 ```
-python RaProM-Pro.py -spe3D -dsd3D -h100.3
+python RaProM-Pro.py -M0.78
 
 ```
+This example assumes a multiplicative bias of 0.87 between MRR and reference rainfall.<br />
+
 
 The script asks the directory where the netcdf files to be processed are located (it will process all the MRR-Pro netcdf files of the selected folder), for example:
 ```
