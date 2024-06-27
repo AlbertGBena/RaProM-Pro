@@ -1468,7 +1468,7 @@ if not sys.warnoptions:
 ########INCLUDE THE OPTIONS IN EXECUTATION
 if len(sys.argv)==1:
     option=0
-c_opt=0;c1=0;c2=0;c3=0;h0_opt=np.nan;Adjust_M=1.
+c_opt=0;c1=0;c2=0;c3=0;c4=0;h0_opt=np.nan;Adjust_M=1.
 if len(sys.argv)>1:
     for i in sys.argv:
    
